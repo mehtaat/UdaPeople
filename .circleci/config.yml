@@ -4,23 +4,25 @@ commands:
   destroy-environment:
     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
     parameters:
-      # Add parameter here   
+      workflowID:
+        type: string   
     steps:
       - run:
           name: "Destroy Backend Stack"
           when: on_fail
           command: |
-            aws cloudformation delete-stack --stack-name udapeopleproduct-backend-${CIRCLE_WORKFLOW_ID:0:7}
+            aws cloudformation delete-stack --stack-name udapeopleproduct-backend-<< parameters.workflowID >>
       - run:
           name: "Destroy Frontend Stack"
           when: on_fail
           command: |
-            aws cloudformation delete-stack --stack-name udapeopleproduct-frontend-${CIRCLE_WORKFLOW_ID:0:7}
+            aws cloudformation delete-stack --stack-name udapeopleproduct-frontend-<< parameters.workflowID >>
 
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
     parameters:
-      # Add parameter here     
+      workflowID:
+        type: string
     steps:
       - run:
           name: "Revert migrations"
@@ -161,7 +163,8 @@ jobs:
           root: ~/
           paths:
             - "project"
-      -  destroy-environment
+      - destroy-environment
+          workflowID: ${CIRCLE_WORKFLOW_ID:0:7} 
 
   configure-infrastructure:
     docker:
@@ -183,7 +186,8 @@ jobs:
             ansible-playbook \
               -i .circleci/ansible/inventory.txt \
               .circleci/ansible/configure-server.yml
-      - destroy-environment      
+      - destroy-environment
+          workflowID: ${CIRCLE_WORKFLOW_ID:0:7}      
 
   run-migrations:
     docker:
@@ -191,8 +195,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys:
-            - backend-build
+          keys: [backend-build]
       - run:
           name: Run migrations
           command: |
@@ -209,6 +212,7 @@ jobs:
               curl https://kvdb.io/94bjWBAtaboCvexoXy2Qay/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '2'
             fi
       - destroy-environment
+          workflowID: ${CIRCLE_WORKFLOW_ID:0:7}
 
   deploy-frontend:
     docker:
@@ -240,7 +244,9 @@ jobs:
             tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
             aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
       - destroy-environment
+          workflowID: ${CIRCLE_WORKFLOW_ID:0:7}
       - revert-migrations
+          workflowID: ${CIRCLE_WORKFLOW_ID:0:7}
                     
 #   deploy-backend:
 #     docker:
@@ -335,12 +341,12 @@ workflows:
           # filters:
           #   branches:
           #     only: [test-feature-branch]
-      # - configure-infrastructure:
-      #     requires: [deploy-infrastructure]
-      # - run-migrations:
-      #     requires: [configure-infrastructure]
-      # - deploy-frontend:
-      #     requires: [run-migrations]
+      - configure-infrastructure:
+          requires: [deploy-infrastructure]
+      - run-migrations:
+          requires: [configure-infrastructure]
+      - deploy-frontend:
+          requires: [run-migrations]
       # - deploy-backend:
       #     requires: [run-migrations]
       # - smoke-test:
