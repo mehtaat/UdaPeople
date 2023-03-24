@@ -164,7 +164,7 @@ jobs:
           paths:
             - "project"
       - destroy-environment:
-          workflowID: ${CIRCLE_WORKFLOW_ID:0:7} 
+          workflowID: "${CIRCLE_WORKFLOW_ID:0:7}"
 
   configure-infrastructure:
     docker:
@@ -187,7 +187,7 @@ jobs:
               -i .circleci/ansible/inventory.txt \
               .circleci/ansible/configure-server.yml
       - destroy-environment:
-          workflowID: ${CIRCLE_WORKFLOW_ID:0:7}      
+          workflowID: "${CIRCLE_WORKFLOW_ID:0:7}"      
 
   run-migrations:
     docker:
@@ -196,6 +196,9 @@ jobs:
       - checkout
       - restore_cache:
           keys: [backend-build]
+      - attach_workspace:
+          at: ~/
+      - create-dotenv-file
       - run:
           name: Run migrations
           command: |
@@ -212,7 +215,7 @@ jobs:
               curl https://kvdb.io/94bjWBAtaboCvexoXy2Qay/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '2'
             fi
       - destroy-environment:
-          workflowID: ${CIRCLE_WORKFLOW_ID:0:7}
+          workflowID: "${CIRCLE_WORKFLOW_ID:0:7}"
 
   deploy-frontend:
     docker:
@@ -244,9 +247,9 @@ jobs:
             tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
             aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
       - destroy-environment:
-          workflowID: ${CIRCLE_WORKFLOW_ID:0:7}
+          workflowID: "${CIRCLE_WORKFLOW_ID:0:7}"
       - revert-migrations:
-          workflowID: ${CIRCLE_WORKFLOW_ID:0:7}
+          workflowID: "${CIRCLE_WORKFLOW_ID:0:7}"
                     
 #   deploy-backend:
 #     docker:
