@@ -232,8 +232,7 @@ jobs:
           name: "Install dependencies"
           command: |
             yum install -y tar gzip
-            yum install epel-release
-            yum -y install nodejs npm
+            curl -fsSL https://rpm.nodesource.com/setup_16.x | bash - && yum -y install nodejs
       - run:
           name: "Get backend url"
           command: |
