@@ -290,48 +290,60 @@ jobs:
       - run:
           name: "Deploy backend"
           command: |
-            # cd backend
-            # npm i
-            # npm run build
-            # cd ..
             tar -C backend -czvf artifact.tar.gz .
             cd .circleci/ansible
             echo "Contents  of the inventory.txt file is -------"
             cat inventory.txt
             ansible-playbook -i inventory.txt deploy-backend.yml
-      # - run:
-      #     name: "Start the App"
-      #     command: |
-      #       npm install
-      #       pm2 stop default
-      #       pm2 start npm -- start
       - destroy-environment:
           workflowID: "${CIRCLE_WORKFLOW_ID:0:7}"
       - revert-migrations:
           workflowID: "${CIRCLE_WORKFLOW_ID:0:7}"  
 
-#   smoke-test:
-#     docker:
-#       # Lightweight Docker image 
-#     steps:
-#       # Checkout code from git
-#       - run:
-#           name: "Install dependencies"
-#           command: |
-#             # your code here
-#       - run:
-#           name: Get backend url
-#           command: |
-#             # your code here
-#       - run:
-#           name: "Backend smoke test."
-#           command: |
-#             # your code here
-#       - run:
-#           name: "Frontend smoke test."
-#           command: |
-#             # your code here
-#       # Here's where you will add some code to rollback on failure  
+  smoke-test:
+    docker:
+      - image: alpine:latest 
+    steps:
+      - checkout
+      - run:
+          name: "Install dependencies"
+          command: |
+            apk --no-cache add curl
+            apk add --update npm
+            apk add --no-cache python3 py3-pip \
+              && pip3 install --upgrade pip \
+              && pip install awscli
+      - run:
+          name: "Backend smoke test."
+          command: |
+            export BACKEND_IP=$(aws ec2 describe-instances \
+              --query 'Reservations[*].Instances[*].PublicIpAddress' \
+              --filters "Name=tag:project,Values=udapeopleproduct" \
+              --output text)
+            export API_URL="http://${BACKEND_IP}:3030"
+            echo "API_URL = ${API_URL}"
+            if curl "${API_URL}/api/status" | grep "ok"
+            then
+              return 0
+            else
+              return 1
+            fi
+      - run:
+          name: "Frontend smoke test."
+          command: |
+            URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-east-1.amazonaws.com"
+            echo ${URL}
+            if curl -s ${URL} | grep "Welcome"
+            then
+              # Change this to 0 after the job fails
+              return 1
+            else
+              return 1
+            fi
+      - destroy-environment:
+          workflowID: "${CIRCLE_WORKFLOW_ID:0:7}"
+      - revert-migrations:
+          workflowID: "${CIRCLE_WORKFLOW_ID:0:7}"    
 
 # #   cloudfront-update:
 # #     docker:
@@ -394,8 +406,8 @@ workflows:
           requires: [run-migrations]
       - deploy-backend:
           requires: [run-migrations]
-      # - smoke-test:
-      #     requires: [deploy-backend, deploy-frontend]
+      - smoke-test:
+          requires: [deploy-backend, deploy-frontend]
       # # - cloudfront-update:
       # #     requires: [smoke-test]
       # # - cleanup:
