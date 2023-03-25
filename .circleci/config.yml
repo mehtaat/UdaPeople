@@ -268,12 +268,17 @@ jobs:
           at: ~/
       - run:
           name: "Install dependencies"
-          command: |
-            apk add --update ansible
-            apk add --no-cache curl
-            apk add --no-cache openssh-client
-            apk add --no-cache --upgrade bash
-            pip install awscli
+          # command: |
+          #   apk add --update ansible
+          #   apk add --no-cache curl
+          #   apk add --no-cache openssh-client
+          #   apk add --no-cache --upgrade bash
+          #   pip install awscli
+          become: true
+          apt:
+          name: ["nodejs", "npm"]
+          state: latest
+          update_cache: yes
       - run:
           name: Add env vars to .env file
           command: |
