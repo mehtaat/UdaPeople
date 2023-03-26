@@ -276,13 +276,17 @@ jobs:
       - run:
           name: "Install dependencies"
           command: |
-            cd backend
-            npm install
-            apk add --update ansible
-            apk add --no-cache curl
-            apk add --no-cache openssh-client
-            apk add --no-cache --upgrade bash
+            # cd backend
+            # npm install
+            # apk add --update ansible
+            # apk add --no-cache curl
+            # apk add --no-cache openssh-client
+            # apk add --no-cache --upgrade bash
+            # pip install awscli
+            apk add --update ansible curl rsync openssh nodejs npm
+            ansible --version
             pip install awscli
+            aws --version
       - run:
           name: Add env vars to .env file
           command: |
@@ -311,13 +315,13 @@ jobs:
       - run:
           name: "Start the Server"
           command: |
-            npm install
+            # npm install
             pm2 stop default
             pm2 start npm -- start  
-      - destroy-environment:
-          workflowID: "${CIRCLE_WORKFLOW_ID:0:7}"
-      - revert-migrations:
-          workflowID: "${CIRCLE_WORKFLOW_ID:0:7}"  
+      # - destroy-environment:
+      #     workflowID: "${CIRCLE_WORKFLOW_ID:0:7}"
+      # - revert-migrations:
+      #     workflowID: "${CIRCLE_WORKFLOW_ID:0:7}"  
 
   smoke-test:
     docker:
