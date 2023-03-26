@@ -30,14 +30,14 @@ commands:
           name: "Revert migrations"
           when: on_fail
           command: |
-            SUCCESS=$(curl --insecure  https://kvdb.io/Sd7zjbzXjdoYKpfUeR1hCC/migration_<< parameters.workflowID >>)
-            echo $SUCCESS
-            if (( $SUCCESS == 1 ));
-            then                        
-              cd ~/project/backend
-              npm install
-              npm run migrations:revert
-            fi
+            # SUCCESS=$(curl --insecure  https://kvdb.io/Sd7zjbzXjdoYKpfUeR1hCC/migration_<< parameters.workflowID >>)
+            # echo $SUCCESS
+            # if (( $SUCCESS == 1 ));
+            # then                        
+            cd ~/project/backend
+            npm install
+            npm run migrations:revert
+            # fi
             
 jobs:
   build-frontend:
@@ -264,60 +264,60 @@ jobs:
       - revert-migrations:
           workflowID: "${CIRCLE_WORKFLOW_ID:0:7}"
                     
-  # deploy-backend:
-  #   docker:
-  #     - image: python:3.11-rc-alpine
-  #   steps:
-  #     - checkout
-  #     - add_ssh_keys:
-  #         fingerprints: ["7a:cd:cf:29:89:f3:b9:fc:a9:fa:42:b3:f3:45:4f:0a"] 
-  #     - attach_workspace:
-  #         at: ~/
-  #     - run:
-  #         name: "Install dependencies"
-  #         command: |
-  #           cd backend
-  #           npm install
-  #           apk add --update ansible
-  #           apk add --no-cache curl
-  #           apk add --no-cache openssh-client
-  #           apk add --no-cache --upgrade bash
-  #           pip install awscli
-  #     - run:
-  #         name: Add env vars to .env file
-  #         command: |
-  #           echo ENVIRONMENT=$ENVIRONMENT > "./backend/.env"
-  #           echo TYPEORM_CONNECTION=$TYPEORM_CONNECTION >> "./backend/.env"
-  #           echo TYPEORM_MIGRATIONS_DIR=$TYPEORM_MIGRATIONS_DIR >> "./backend/.env"
-  #           echo TYPEORM_ENTITIES=$TYPEORM_ENTITIES >> "./backend/.env"
-  #           echo TYPEORM_MIGRATIONS=$TYPEORM_MIGRATIONS >> "./backend/.env"
-  #           echo TYPEORM_HOST=$TYPEORM_HOST >> "./backend/.env"
-  #           echo TYPEORM_PORT=$TYPEORM_PORT >> "./backend/.env"
-  #           echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> "./backend/.env"
-  #           echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> "./backend/.env"
-  #           echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> "./backend/.env"
-  #     - run:
-  #         name: "Deploy backend"
-  #         command: |
-  #           cd backend
-  #           npm i
-  #           npm run build
-  #           cd ..
-  #           tar -C backend -czvf artifact.tar.gz .
-  #           cd .circleci/ansible
-  #           echo "Contents  of the inventory.txt file is -------"
-  #           cat inventory.txt
-  #           ansible-playbook -i inventory.txt deploy-backend.yml
-  #     - run:
-  #         name: "Start the Server"
-  #         command: |
-  #           npm install
-  #           pm2 stop default
-  #           pm2 start npm -- start  
-  #     - destroy-environment:
-  #         workflowID: "${CIRCLE_WORKFLOW_ID:0:7}"
-  #     - revert-migrations:
-  #         workflowID: "${CIRCLE_WORKFLOW_ID:0:7}"  
+  deploy-backend:
+    docker:
+      - image: python:3.11-rc-alpine
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints: ["7a:cd:cf:29:89:f3:b9:fc:a9:fa:42:b3:f3:45:4f:0a"] 
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: "Install dependencies"
+          command: |
+            cd backend
+            npm install
+            apk add --update ansible
+            apk add --no-cache curl
+            apk add --no-cache openssh-client
+            apk add --no-cache --upgrade bash
+            pip install awscli
+      - run:
+          name: Add env vars to .env file
+          command: |
+            echo ENVIRONMENT=$ENVIRONMENT > "./backend/.env"
+            echo TYPEORM_CONNECTION=$TYPEORM_CONNECTION >> "./backend/.env"
+            echo TYPEORM_MIGRATIONS_DIR=$TYPEORM_MIGRATIONS_DIR >> "./backend/.env"
+            echo TYPEORM_ENTITIES=$TYPEORM_ENTITIES >> "./backend/.env"
+            echo TYPEORM_MIGRATIONS=$TYPEORM_MIGRATIONS >> "./backend/.env"
+            echo TYPEORM_HOST=$TYPEORM_HOST >> "./backend/.env"
+            echo TYPEORM_PORT=$TYPEORM_PORT >> "./backend/.env"
+            echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> "./backend/.env"
+            echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> "./backend/.env"
+            echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> "./backend/.env"
+      - run:
+          name: "Deploy backend"
+          command: |
+            cd backend
+            npm i
+            npm run build
+            cd ..
+            tar -C backend -czvf artifact.tar.gz .
+            cd .circleci/ansible
+            echo "Contents  of the inventory.txt file is -------"
+            cat inventory.txt
+            ansible-playbook -i inventory.txt deploy-backend.yml
+      - run:
+          name: "Start the Server"
+          command: |
+            npm install
+            pm2 stop default
+            pm2 start npm -- start  
+      - destroy-environment:
+          workflowID: "${CIRCLE_WORKFLOW_ID:0:7}"
+      - revert-migrations:
+          workflowID: "${CIRCLE_WORKFLOW_ID:0:7}"  
 
   smoke-test:
     docker:
@@ -356,7 +356,7 @@ jobs:
             if curl -s ${URL} | grep "Welcome"
             then
               # Change this to 0 after the job fails
-              return 1
+              return 0
             else
               return 1
             fi
@@ -365,20 +365,28 @@ jobs:
       - revert-migrations:
           workflowID: "${CIRCLE_WORKFLOW_ID:0:7}"    
 
-# #   cloudfront-update:
-# #     docker:
-# #       # Docker image here that supports AWS CLI
-# #     steps:
-# #       # Checkout code from git
-# #       - run:
-# #           name: "Install dependencies"
-# #           command: |
-# #             # your code here
-# #       - run:
-# #           name: "Update cloudfront distribution"
-# #           command: |
-# #             # your code here
-# #       # Here's where you will add some code to rollback on failure  
+  cloudfront-update:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run:
+          name: "Install dependencies"
+          command: |
+            yum install -y tar gzip
+            curl -fsSL https://rpm.nodesource.com/setup_16.x | bash - && yum -y install nodejs
+      - run:
+          name: "Update cloudfront distribution"
+          command: |
+            aws cloudformation deploy \
+              --template-file .circleci/files/cloudfront.yml \
+              --stack-name udapeople-production \
+              --parameter-overrides WorkflowID="udapeople-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --tags project=udapeople
+      - destroy-environment:
+          workflowID: ${CIRCLE_WORKFLOW_ID:0:7}
+      - revert-migrations:
+          workflowID: ${CIRCLE_WORKFLOW_ID:0:7}   
 
 # # cleanup:
 # #     docker:
@@ -422,12 +430,12 @@ workflows:
           requires: [deploy-infrastructure]
       - run-migrations:
           requires: [configure-infrastructure]
-      - deploy-frontend:
-          requires: [run-migrations]
-      # - deploy-backend:
+      # - deploy-frontend:
       #     requires: [run-migrations]
-      - smoke-test:
-          requires: [deploy-frontend]
+      - deploy-backend:
+          requires: [run-migrations]
+      # - smoke-test:
+      #     requires: [deploy-frontend]
           # requires: [deploy-backend, deploy-frontend]
       # # - cloudfront-update:
       # #     requires: [smoke-test]
