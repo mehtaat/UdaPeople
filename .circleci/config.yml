@@ -30,7 +30,7 @@ commands:
           name: "Revert migrations"
           when: on_fail
           command: |
-            SUCCESS=$(curl --insecure  https://kvdb.io/Sd7zjbzXjdoYKpfUeR1hCC/migration_<< parameters.workflow_id >>)
+            SUCCESS=$(curl --insecure  https://kvdb.io/Sd7zjbzXjdoYKpfUeR1hCC/migration_<< parameters.workflowID >>)
             echo $SUCCESS
             if (( $SUCCESS == 1 ));
             then                        
@@ -261,8 +261,8 @@ jobs:
             aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
       - destroy-environment:
           workflowID: "${CIRCLE_WORKFLOW_ID:0:7}"
-      # - revert-migrations:
-      #     workflowID: "${CIRCLE_WORKFLOW_ID:0:7}"
+      - revert-migrations:
+          workflowID: "${CIRCLE_WORKFLOW_ID:0:7}"
                     
   # deploy-backend:
   #   docker:
