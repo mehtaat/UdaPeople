@@ -279,16 +279,16 @@ jobs:
           name: "Install dependencies"
           command: |
             cd backend
-            npm install
-            apk add --update ansible
-            apk add --no-cache curl
-            apk add --no-cache openssh-client
-            apk add --no-cache --upgrade bash
+            # npm install
+            # apk add --update ansible
+            # apk add --no-cache curl
+            # apk add --no-cache openssh-client
+            # apk add --no-cache --upgrade bash
+            # pip install awscli
+            apk add --update ansible curl rsync openssh nodejs npm
+            ansible --version
             pip install awscli
-            # # apk add --update ansible curl rsync openssh nodejs npm
-            # # ansible --version
-            # # pip install awscli
-            # # aws --version
+            aws --version
             # apk add --update ansible
             # apk add --no-cache curl
             # apk add --no-cache openssh-client
