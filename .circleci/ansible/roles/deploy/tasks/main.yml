@@ -27,8 +27,8 @@
 
 - name: "NPM Install"
   shell: |
-    apt update
-    npm install --production
+    sudo apt update
+    sudo npm install --production
     chdir: /home/ubuntu/app
 
 - name: "Start backend with pm2"
