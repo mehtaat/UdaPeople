@@ -274,7 +274,7 @@ jobs:
       - attach_workspace:
           at: ~/
       - attach_workspace:
-          at: /tmp/workspace
+          at: /tmp
       - restore_cache:
           keys: [backend-build]
       - run:
