@@ -1,6 +1,6 @@
 ---
 - name: install npm
-  becom: true
+  become: true
   shell: |
     apk add nodejs           
     apk add npm
