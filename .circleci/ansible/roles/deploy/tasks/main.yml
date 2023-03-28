@@ -1,4 +1,9 @@
 ---
+- name: install npm
+  becom: true
+  shell: |
+    apk add nodejs           
+    apk add npm
 - name: Upgrade npm
   become: true
   shell: |
