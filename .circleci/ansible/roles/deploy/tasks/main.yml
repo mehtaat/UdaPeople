@@ -2,8 +2,8 @@
 - name: install npm
   become: true
   shell: |
-    apk add nodejs           
-    apk add npm
+    apt-get add nodejs           
+    apt-get add npm
 - name: Upgrade npm
   become: true
   shell: |
