@@ -266,36 +266,38 @@ jobs:
                     
   deploy-backend:
     docker:
-      - image: python:3.11-rc-alpine
+      - image: python:3.7-alpine3.11
     steps:
       - checkout
       - add_ssh_keys:
           fingerprints: ["7a:cd:cf:29:89:f3:b9:fc:a9:fa:42:b3:f3:45:4f:0a"] 
       - attach_workspace:
           at: ~/
+      - attach_workspace:
+          at: /tmp/workspace
       - restore_cache:
           keys: [backend-build]
       - run:
           name: "Install dependencies"
           command: |
-            # cd backend
-            # npm install
-            apk add --update ansible
-            apk add --no-cache curl
-            apk add --no-cache openssh-client
-            apk add --no-cache --upgrade bash
-            apk add nodejs           
-            apk add npm
-            pip install awscli
-            # apk add --update ansible curl rsync openssh nodejs npm
-            # ansible --version
-            # pip install awscli
-            # aws --version
+            # # cd backend
+            # # npm install
             # apk add --update ansible
             # apk add --no-cache curl
             # apk add --no-cache openssh-client
             # apk add --no-cache --upgrade bash
+            # apk add nodejs           
+            # apk add npm
             # pip install awscli
+            apk add --update ansible openssh-client tar gzip curl nodejs npm
+            ansible --version
+            pip install awscli
+            aws --version
+            # # apk add --update ansible
+            # # apk add --no-cache curl
+            # # apk add --no-cache openssh-client
+            # # apk add --no-cache --upgrade bash
+            # # pip install awscli
       - run:
           name: Add env vars to .env file
           command: |
@@ -312,12 +314,10 @@ jobs:
       - run:
           name: "Deploy backend"
           command: |
-            # cd backend
-            # npm i
-            # npm run build
-            # cd ..
-            apk add nodejs           
-            apk add npm
+            cd backend
+            npm i
+            npm run build
+            cd ..
             tar -C backend -czvf artifact.tar.gz .
             cd .circleci/ansible
             echo "Contents  of the inventory.txt file is -------"
