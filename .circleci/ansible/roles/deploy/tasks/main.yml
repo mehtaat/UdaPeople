@@ -14,14 +14,14 @@
 - name: "Copy backend build folder to EC2"
   become: yes
   unarchive:
-    src: /tmp/backend.tar.gz
+    src: /tmp/workspace/backend.tar.gz
     dest: /home/ubuntu/app/
     owner: ubuntu
 
 - name: "Copy package.json to EC2"
   become: yes
   copy:
-    src: /tmp/package.json
+    src: /tmp/workspace/package.json
     dest: /home/ubuntu/app/
     owner: ubuntu
 
