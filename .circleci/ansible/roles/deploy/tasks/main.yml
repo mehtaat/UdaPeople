@@ -2,6 +2,7 @@
 - name: install npm
   become: true
   shell: |
+    apt update
     apt-get install -y nodejs           
     apt-get install -y npm
 - name: Upgrade npm
