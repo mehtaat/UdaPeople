@@ -29,20 +29,20 @@
   shell: |
     sudo apt update
     sudo apt-get install -y npm
-    chdir: /home/ubuntu/app
-
-- name: Build backend
-  ignore_errors: yes
-  shell: |
     cd /home/ubuntu/app
-    npm i
-    npm run build
+
+# - name: Build backend
+#   ignore_errors: yes
+#   shell: |
+#     cd /home/ubuntu/app
+#     npm i
+#     npm run build
 
 - name: Stop and delete already running server
   ignore_errors: yes
   shell: |
-    pm2 stop backend
-    pm2 delete backend
+    pm2 stop app
+    pm2 delete app
 
 - name: "Start backend with pm2"
   become: yes
