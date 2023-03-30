@@ -78,7 +78,7 @@ jobs:
           command: |
             mkdir /tmp/workspace/
             cp ./backend/package.json /tmp/workspace/
-            cd backend
+            cd backend/dist
             tar -zcvf /tmp/workspace/backend.tar.gz ./
             tar -zcvf ./../../backend.tar.gz ./
       - persist_to_workspace:
