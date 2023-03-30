@@ -13,12 +13,13 @@
     owner: ubuntu
 
 - name: "NPM Install"
+  become: yes
   shell: |
     sudo apt update
     sudo apt-get install -y npm
     cd /home/ubuntu/app
 
-- name: "Start backend with pm2"
+- name: "Start backend"
   become: yes
   shell: |
     cd /home/ubuntu/app
