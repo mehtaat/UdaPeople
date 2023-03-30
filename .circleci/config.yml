@@ -292,25 +292,11 @@ jobs:
           keys: [backend-build]
       - run:
           name: "Install dependencies"
-          command: |
-            # cd backend
-            # npm install
-            # apk add --update ansible
-            # apk add --no-cache curl
-            # apk add --no-cache openssh-client
-            # apk add --no-cache --upgrade bash
-            # apk add nodejs           
-            # apk add npm
-            # pip install awscli
+          command: |            
             apk add --update ansible openssh-client tar gzip curl nodejs npm
             ansible --version
             pip install awscli
-            aws --version
-            # # # apk add --update ansible
-            # # # apk add --no-cache curl
-            # # # apk add --no-cache openssh-client
-            # # # apk add --no-cache --upgrade bash
-            # # # pip install awscli
+            aws --version            
       - run:
           name: Add env vars to .env file
           command: |
@@ -336,25 +322,17 @@ jobs:
             echo "Contents  of the inventory.txt file is -------"
             cat inventory.txt
             export ANSIBLE_HOST_KEY_CHECKING=false
-            ansible-playbook -i inventory.txt deploy-backend.yml
-            # pwd
-            # sudo apt update
-            # sudo apt install python3-software-properties
-            # curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -
-            # sudo apt install -y nodejs
-            # tar czf backend.tar.gz backend/
-            # export ANSIBLE_HOST_KEY_CHECKING=false
-            # ansible-playbook -i ./.circleci/ansible/inventory.txt ./.circleci/ansible/deploy-backend.yml -vvv     
-      # - run:
-      #     name: "Start the Server"
-      #     command: |
-      #       npm install
-      #       pm2 stop default
-      #       pm2 start npm -- start  
-      # - destroy-environment:
-      #     workflowID: "${CIRCLE_WORKFLOW_ID:0:7}"
-      # - revert-migrations:
-      #     workflowID: "${CIRCLE_WORKFLOW_ID:0:7}"  
+            ansible-playbook -i inventory.txt deploy-backend.yml     
+      - run:
+          name: "Start the Server"
+          command: |
+            npm install
+            pm2 stop default
+            pm2 start npm -- start  
+      - destroy-environment:
+          workflowID: "${CIRCLE_WORKFLOW_ID:0:7}"
+      - revert-migrations:
+          workflowID: "${CIRCLE_WORKFLOW_ID:0:7}"  
 
   smoke-test:
     docker:
@@ -397,10 +375,10 @@ jobs:
             else
               return 1
             fi
-      # - destroy-environment:
-      #     workflowID: "${CIRCLE_WORKFLOW_ID:0:7}"
-      # - revert-migrations:
-      #     workflowID: "${CIRCLE_WORKFLOW_ID:0:7}"    
+      - destroy-environment:
+          workflowID: "${CIRCLE_WORKFLOW_ID:0:7}"
+      - revert-migrations:
+          workflowID: "${CIRCLE_WORKFLOW_ID:0:7}"    
 
   cloudfront-update:
     docker:
