@@ -30,14 +30,14 @@ commands:
           name: "Revert migrations"
           when: on_fail
           command: |
-            # SUCCESS=$(curl --insecure  https://kvdb.io/VCFa19cBLGU8dsGXftJGPV/migration_<< parameters.workflowID >>)
-            # echo $SUCCESS
-            # if (( $SUCCESS == 1 ));
-            # then                        
-            cd ~/project/backend
-            npm install
-            npm run migrations:revert
-            # fi
+            SUCCESS=$(curl --insecure  https://kvdb.io/VCFa19cBLGU8dsGXftJGPV/migration_<< parameters.workflowID >>)
+            echo $SUCCESS
+            if (( $SUCCESS == 1 ));
+            then                        
+              cd ~/project/backend
+              npm install
+              npm run migrations:revert
+            fi
             
 jobs:
   build-frontend:
@@ -311,7 +311,7 @@ jobs:
             echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> "./backend/.env"
             echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> "./backend/.env"
       - run:
-          name: "Deploy backend"
+          name: "Deploy and Start backend"
           command: |
             cd backend
             npm i
@@ -323,16 +323,16 @@ jobs:
             cat inventory.txt
             export ANSIBLE_HOST_KEY_CHECKING=false
             ansible-playbook -i inventory.txt deploy-backend.yml     
-      - run:
-          name: "Start the Server"
-          command: |
-            npm install
-            pm2 stop default
-            pm2 start npm -- start  
-      # - destroy-environment:
-      #     workflowID: "${CIRCLE_WORKFLOW_ID:0:7}"
-      # - revert-migrations:
-      #     workflowID: "${CIRCLE_WORKFLOW_ID:0:7}"  
+      # - run:
+      #     name: "Start the Server"
+      #     command: |
+      #       npm install
+      #       pm2 stop default
+      #       pm2 start npm -- start  
+      - destroy-environment:
+          workflowID: "${CIRCLE_WORKFLOW_ID:0:7}"
+      - revert-migrations:
+          workflowID: "${CIRCLE_WORKFLOW_ID:0:7}"  
 
   smoke-test:
     docker:
@@ -356,13 +356,13 @@ jobs:
               --output text)
             export API_URL="http://${BACKEND_IP}:3030"
             echo "API_URL = ${API_URL}"
-            curl -s "${API_URL}/api/status" -v
-            # if curl "${API_URL}/api/status" | grep "ok"
-            # then
-            #   return 0
-            # else
-            #   return 1
-            # fi
+            # curl -s "${API_URL}/api/status" -v
+            if curl "${API_URL}/api/status" | grep "ok"
+            then
+              return 0
+            else
+              return 1
+            fi
       - run:
           name: "Frontend smoke test."
           command: |
