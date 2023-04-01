@@ -19,19 +19,24 @@
     sudo apt-get install -y npm
     cd /home/ubuntu/app
 
+- name: Stop and delete already running server
+  ignore_errors: yes
+  shell: |
+    pm2 stop backend
+    pm2 delete backend
+
 - name: "Start backend"
   become: yes
   shell: |
     cd /home/ubuntu/app
-    npm run start
+    # npm run start
+    pm2 start npm -- start
+    
   environment:
     ENVIRONMENT: production
     TYPEORM_CONNECTION: "{{ lookup('env', 'TYPEORM_CONNECTION') }}"
-    # TYPEORM_MIGRATIONS_DIR: "./migrations"
     TYPEORM_MIGRATIONS_DIR: "./src/migrations"
-    # TYPEORM_MIGRATIONS: "./migrations/*.js"
     TYPEORM_MIGRATIONS: ./src/migrations/*.ts
-    # TYPEORM_ENTITIES: "./modules/domain/**/*.entity.js"
     TYPEORM_ENTITIES: "./src/modules/domain/**/*.entity.ts"
     TYPEORM_HOST: "{{ lookup('env', 'TYPEORM_HOST') }}"
     TYPEORM_PORT: "{{ lookup('env', 'TYPEORM_PORT') }}"
